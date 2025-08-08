@@ -1,7 +1,8 @@
 import axios from 'axios';
 import { parseHTML } from 'linkedom';
+import jestConfig from './jest.config';
 
-export async function viewSchedule(url: string, group: string): Promise<string[][]> {
+export async function viewSchedule(url: string, group: string): Promise<[string[], Record<string, number>, string[]]> {
   try {
     const response = await axios.get(url);
     const html = response.data;
@@ -53,9 +54,11 @@ export async function viewSchedule(url: string, group: string): Promise<string[]
       if (foundY !== -1) break;
     }
 
-    const lessons: string[] = [];
+    let lessons: Record<string, number> = {};
     const rooms: string[] = [];
     const times: string[] = [];
+    var rowspan = 1;
+    const getText = (el: any) => (el?.textContent ?? "").trim();
 
     if (foundY === -1 || foundX === -1) {
       console.log('⛔ Группа ВР-21 не найдена');
@@ -65,18 +68,42 @@ export async function viewSchedule(url: string, group: string): Promise<string[]
         const roomCell = matrix[foundY + i]?.[foundX + 1];
         const timeCell = matrix[3 + i]?.[1];
         if (lessonCell) {
-          lessons.push(lessonCell.textContent.trim());
-          rooms.push(roomCell.textContent.trim());
-          times.push(timeCell.textContent.trim());
+            times.push(getText(timeCell));
+            const name = getText(lessonCell);
+            if (name) {
+            lessons[name] = (lessons[name] || 0) + 1;
+            }
+
+            rooms.push(getText(roomCell));
         } else {
-          console.log(`🕳️ Ячейка ${i} отсутствует`);
+        console.log(`🕳️ Ячейка ${i} отсутствует`);
         }
-      }
     }
+    }
+
+    const lessonsEntries = Object.entries(lessons);
+
+   for (let i = 0; i < lessonsEntries.length; i++) {
+    const [lessonI, countI] = lessonsEntries[i];
+
+    for (let j = i + 1; j < lessonsEntries.length; j++) {
+        const [lessonJ, countJ] = lessonsEntries[j];
+
+        if (lessonI === lessonJ && countJ !== 0) {
+        lessonsEntries[i][1] += countJ;
+        lessonsEntries[j][1] = 0;
+        }
+    }
+    }
+
+    // Удаляем нулевые элементы
+    const filteredEntries = lessonsEntries.filter(([_, count]) => count > 0);
+    lessons = Object.fromEntries(filteredEntries);
+
 
     return [times, lessons, rooms];
   } catch (err) {
     console.error('❌ Ошибка при загрузке расписания:', err);
-    return [];
+    return [[], {}, []];
   }
 }

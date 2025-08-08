@@ -12,7 +12,7 @@ import { viewSchedule } from './parse';
 
 
 const App = () => {
-  const [schedule, setSchedule] = useState<string[][] | null>(null);
+  const [schedule, setSchedule] = useState<[string[], Record<string, number>, string[]]| null>(null);
 
   const [loadingSchedule, setLoadingSchedule] = useState(true);
 
@@ -87,7 +87,7 @@ const App = () => {
       </SafeAreaView>
     );
   }
-  else if (!schedule || schedule.length === 0) {
+  else if (!schedule) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.heading}>Нет данных расписания 😢</Text>
@@ -109,7 +109,7 @@ const App = () => {
       </SafeAreaView>
     );
   } else {
-    
+    const lessonEntries = Object.entries(schedule[1]);
     return (
       <SafeAreaView style={styles.container}>
         <Text style={[styles.heading, { fontFamily: 'SpaceMono' }]}>{schedule?.[1][0]}</Text>
@@ -120,13 +120,20 @@ const App = () => {
             <Text style={[styles.cellBase, { width: width * roomSize }]}>Кабинет</Text>
           </View>
   
-          {schedule?.[0].map((_: any, i: number) => (
+          {schedule[0].map((time, i) => {
+          const lessonName = lessonEntries[i + 1]?.[0];
+          const room = schedule[2][i + 1];
+          
+
+          return (
             <View style={styles.row} key={i}>
-              <Text style={[styles.cellBase, { width: width * timeSize }]}>{schedule[0][i]}</Text>
-              <Text style={[styles.cellBase, { width: width * lessonSize }]}>{schedule[1][i + 1]}</Text>
-              <Text style={[styles.cellBase, { width: width * roomSize }]}>{schedule[2][i + 1]}</Text>
+              <Text style={[styles.cellBase, { width: width * timeSize }]}>{time}</Text>
+              <Text style={[styles.cellBase, { width: width * lessonSize }]}>{lessonName}</Text>
+              <Text style={[styles.cellBase, { width: width * roomSize }]}>{room}</Text>
             </View>
-          ))}
+          );
+        })}
+
         </View>
         <SafeAreaView style={styles.bottomContainer}>
           <SafeAreaView style={styles.inputContainer}>
@@ -189,6 +196,7 @@ const styles = StyleSheet.create({
   table: {
     borderWidth: 1,
     borderColor: '#7a7a7aff',
+    height: 360,
   },
   row: {
     flexDirection: 'row',
@@ -201,6 +209,7 @@ const styles = StyleSheet.create({
     borderColor: '#7a7a7aff',
     color: '#b1afafff',
     textAlign: 'center',
+    height: 30,
   },
   input: {
     color: '#ffffff',
