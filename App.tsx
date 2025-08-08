@@ -5,13 +5,13 @@ import {
   StyleSheet,
   Text,
   View,
-  useColorScheme,
+  TextInput,
 } from 'react-native';
 
 import { viewSchedule } from './parse';
 
+
 const App = () => {
-  const colorScheme = useColorScheme();
   const [schedule, setSchedule] = useState<string[][] | null>(null);
 
   const [loadingSchedule, setLoadingSchedule] = useState(true);
@@ -21,24 +21,69 @@ const App = () => {
   const timeSize = 0.3;
   const lessonSize = 0.45;
   const roomSize = 0.2;
+  const [group, setGroup] = useState('');
+  const [inputText, setInputText] = useState('');
+
+
 
   useEffect(() => {
-    viewSchedule('https://www.vgtk.by/schedule/lessons/day-tomorrow.php').then((result) => {
-      console.log('✅ Расписание:', result);
-      setSchedule(result);
-      setLoadingSchedule(false);
-    }).catch((err) => {
-      console.error('❌ Ошибка загрузки:', err);
-      setLoadingSchedule(false);
-    });
-  }, []);
+  if (group !== '') {
+    setLoadingSchedule(true);
+    viewSchedule('https://www.vgtk.by/schedule/lessons/day-tomorrow.php', group)
+      .then((result) => {
+        console.log('✅ Расписание:', result);
+        setSchedule(result);
+        setLoadingSchedule(false);
+      })
+      .catch((err) => {
+        console.error('❌ Ошибка загрузки:', err);
+        setLoadingSchedule(false);
+      });
+  }
+}, [group]); 
 
-
-
-  if (loadingSchedule) {
+  
+  if (group === "") {
+    return (
+      <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.bottomContainer}>
+          <SafeAreaView style={styles.inputContainer}>
+            <TextInput 
+            style={styles.input} 
+            placeholder='Введите название группы'
+            value={inputText} 
+            onChangeText={setInputText} 
+            returnKeyType='done'
+            onSubmitEditing={() => {
+              setGroup(inputText);
+              setInputText('');
+            }}>
+            </TextInput>
+          </SafeAreaView>
+        </SafeAreaView>
+      </SafeAreaView>
+    );
+  }
+  
+  else if (loadingSchedule) {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={[styles.heading, { fontFamily: 'SpaceMono' }]}>Загрузка расписания...</Text>
+        <SafeAreaView style={styles.bottomContainer}>
+          <SafeAreaView style={styles.inputContainer}>
+            <TextInput 
+            style={styles.input} 
+            placeholder='Введите название группы'
+            value={inputText} 
+            onChangeText={setInputText} 
+            returnKeyType='done'
+            onSubmitEditing={() => {
+              setGroup(inputText);
+              setInputText('');
+            }}>
+            </TextInput>
+          </SafeAreaView>
+        </SafeAreaView>
       </SafeAreaView>
     );
   }
@@ -46,10 +91,25 @@ const App = () => {
     return (
       <SafeAreaView style={styles.container}>
         <Text style={styles.heading}>Нет данных расписания 😢</Text>
+        <SafeAreaView style={styles.bottomContainer}>
+          <SafeAreaView style={styles.inputContainer}>
+            <TextInput 
+            style={styles.input} 
+            placeholder='Введите название группы'
+            value={inputText} 
+            onChangeText={setInputText} 
+            returnKeyType='done'
+            onSubmitEditing={() => {
+              setGroup(inputText);
+              setInputText('');
+            }}>
+            </TextInput>
+          </SafeAreaView>
+        </SafeAreaView>
       </SafeAreaView>
     );
   } else {
-
+    
     return (
       <SafeAreaView style={styles.container}>
         <Text style={[styles.heading, { fontFamily: 'SpaceMono' }]}>{schedule?.[1][0]}</Text>
@@ -68,11 +128,26 @@ const App = () => {
             </View>
           ))}
         </View>
+        <SafeAreaView style={styles.bottomContainer}>
+          <SafeAreaView style={styles.inputContainer}>
+            <TextInput 
+            style={styles.input} 
+            placeholder='Введите название группы'
+            value={inputText} 
+            onChangeText={setInputText} 
+            returnKeyType='done'
+            onSubmitEditing={() => {
+              setGroup(inputText);
+              setInputText('');
+            }}>
+            </TextInput>
+          </SafeAreaView>
+        </SafeAreaView>
       </SafeAreaView>
     );
   }
-
-
+  
+  
   
 };
 
@@ -83,6 +158,27 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
+  },
+  bottomContainer: {
+    flex: 0,
+    backgroundColor: '#406a5bff',
+    position: 'absolute',
+    right: 0,
+    left: 0,
+    bottom: 0,
+    height: 60,
+    borderRadius: 20,
+  },
+  inputContainer: {
+    flex: 0,
+    justifyContent: 'center',
+    backgroundColor: '#020a06ff',
+    position: 'absolute',
+    right: 10,
+    left: 10,
+    bottom: 5,
+    top: 5,
+    borderRadius: 30,
   },
   heading: {
     fontSize: 28,
@@ -101,10 +197,17 @@ const styles = StyleSheet.create({
   cellBase: {
     padding: 3,
     fontWeight: 'bold',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#7a7a7aff',
     color: '#b1afafff',
     textAlign: 'center',
+  },
+  input: {
+    color: '#ffffff',
+    fontSize: 14,
+    padding: 10,
+    height: 40,
+    width: 250,
   },
 });
 

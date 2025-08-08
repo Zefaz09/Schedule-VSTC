@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { parseHTML } from 'linkedom';
 
-export async function viewSchedule(url: string): Promise<string[][]> {
+export async function viewSchedule(url: string, group: string): Promise<string[][]> {
   try {
     const response = await axios.get(url);
     const html = response.data;
@@ -44,7 +44,7 @@ export async function viewSchedule(url: string): Promise<string[][]> {
     for (let y = 0; y < matrix.length; y++) {
       for (let x = 0; x < matrix[y]?.length; x++) {
         const cell = matrix[y][x];
-        if (cell?.textContent.trim() === 'ВР-21') {
+        if (cell?.textContent.trim() === group) {
           foundY = y;
           foundX = x;
           break;
@@ -60,7 +60,7 @@ export async function viewSchedule(url: string): Promise<string[][]> {
     if (foundY === -1 || foundX === -1) {
       console.log('⛔ Группа ВР-21 не найдена');
     } else {
-      for (let i = 0; i <= 11; i++) {
+      for (let i = 0; i <= 10; i++) {
         const lessonCell = matrix[foundY + i]?.[foundX];
         const roomCell = matrix[foundY + i]?.[foundX + 1];
         const timeCell = matrix[3 + i]?.[1];
